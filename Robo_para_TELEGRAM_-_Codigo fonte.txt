@@ -1,0 +1,219 @@
+# Bot ConsultaOnlineP1
+# Disciplina de Inteligência Artificial
+# Instituição FATEC Ribeirão Preto
+# Desenvolvido em Python na plataforma COLAB da Google.
+
+# O objetivo do Bot é possibilitar ao
+# paciente marcar uma consulta online ou
+# presencial pelo telegram.
+
+pip install chatterbot
+pip install chatterbot_corpus
+
+import requests
+import time
+import json
+import os
+from chatterbot import ChatBot
+
+class TelegramBot:
+  def __init__(self):
+    token = '2777504297:AAGeLBvbv49H6iNdAyPz_ogcWJoq7u5Q-Ks'
+    self.url_base = f'https://api.telegram.org/bot{token}/'
+  
+  #iniciar bot
+  def Iniciar(self):
+    update_id = None
+    while True:
+      atualizacao = self.obter_mensagens(update_id)
+      mensagens = atualizacao['result']
+      if mensagens:
+        for mensagem in mensagens:
+          update_id = mensagem['update_id']
+          chat_id = mensagem['message']['from']['id']
+          eh_primeira_mensagem = mensagem['message']['message_id'] == 1
+          resposta = self.criar_resposta(mensagem, eh_primeira_mensagem)
+          self.responder(resposta,chat_id)
+
+  #pegar mensagens do usuário
+  def obter_mensagens(self,update_id):
+    link_requisicao = f'{self.url_base}getUpdates?timeout=100'
+    if update_id:
+      link_requisicao = f'{link_requisicao}&offset={update_id + 1}'
+    resultado = requests.get(link_requisicao)
+    return json.loads(resultado.content)
+    
+  #criar uma resposta
+  def criar_resposta(self, mensagem, eh_primeira_mensagem):
+        mensagem = mensagem['message']['text']
+        if eh_primeira_mensagem == True or mensagem.lower() == '/start' or mensagem.lower() == 'ola' or mensagem.lower() == 'olá':
+          return f'''Olá! Bem vindo ao nosso consultório virtual, meu nome é Good Doctor, sou o responsável por fazer agendamentos de consultas médica e o pré atendimento da Clínica Boa Saúde. Como posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('bom dia', 'dia'):
+          return f'''Bom dia. Tudo bem com você? Em que posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('boa tarde', 'tarde'):
+          return f'''Boa tarde. Tudo bem com você? Em que posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('boa noite', 'noite'):
+          return f'''Boa noite. Tudo bem com você? Em que posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('oi'):
+          return f'''Oi, tudo bem com você? Em que posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('quem é você', 'quem e voce', 'quem é vc', 'quem e vc', 'qual o seu nome', 'qual é o seu nome', 'o que é você', 'o que é vc', 'o que você é', 'o que vc é'):
+          return f'''Meu nome é Good Doctor. Eu sou um assistente virtual que te auxilia-rá neste atendimento.{os.linesep}'''
+
+        elif mensagem.lower() in ('ok', 'bom', 'legal'):
+          return f'''Certo. Como posso ajudá-lo?{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('preciso de um médico'):
+          return f'''Ok.{os.linesep}
+          1 - Agendar consulta médica{os.linesep}
+          2 - Urgência{os.linesep}'''
+
+        elif mensagem.lower() in ('1', 'quero marcar uma consulta', 'consulta', 'gostaria de marcar uma consulta', 'agendamento', 'agendar', 'agendar uma consulta'):
+          return f'''Ótimo, qual especialidade você precisa?{os.linesep}
+          10 - Pneumologista{os.linesep}
+          11 - Cardiologista{os.linesep}
+          12 - Hepatologista{os.linesep}'''
+
+        elif mensagem.lower() in ('2', 'urgencia', 'atendimento', 'Não estou nada bem, preciso de um médico agora', 'não estou nada bem', 'Não estou bem'):
+          return f'''Ok, então vamos agilizar!!! Você precisa ser atendido de forma presencial ou pode ser virtual? {os.linesep}'''
+
+        elif mensagem.lower() in ('presencial', 'tem que ser presencial', 'precisa ser presencial', 'de forma presencial'):
+          return f'''Ok. Você precisa ser atendido de forma presencial ou pode ser virtual? {os.linesep}'''
+
+        elif mensagem.lower() in ('pode ser virtual', 'de forma virtual','virtual'):
+          return f'''Ótimo. Essa é a nossa lista de médicos disponíveis, neste momento, para o atendimento virtual: {os.linesep}
+          20 - Pneumologista (Dra. Jessica Cunha){os.linesep}
+          21 - Clínico Geral (Dr. Gustavo Menezes){os.linesep}'''
+
+        elif mensagem.lower() in ('20', '20 - Pneumologista', 'Pneumologista', 'Pneumo', 'dra. Jessica Cunha', 'dra Jessica Cunha', 'Jessica Cunha', 'dra. Jessica', 'dra Jessica', 'dra. Cunha', 'dra Cunha'):
+          return f'''Agora vou fazer algumas perguntas enquanto o(a) doutor(a) não se conecta. Você está com tosse? Se sim, qual dos tipos se enquadra mais com sua tosse: {os.linesep}
+          210 - Não estou com tosse{os.linesep}
+          211 - Tosse Produtiva (Tem a presença de muco ou catarro){os.linesep}
+          212 - Tosse Irritativa (Tosse alérgica){os.linesep}
+          213 - Tosse Seca (tosse sem catarro){os.linesep}'''
+        
+        elif mensagem.lower() in ('21', '21 - clínico geral', 'clínico geral', 'clinico geral', 'dr. gustavo', 'gustavo menezes', 'dr gustavo', 'dr. menezes', 'dr menezes'):
+          return f'''Agora vou fazer algumas perguntas enquanto o(a) doutor(a) não se conecta. Você teve febre (Sim ou Não)? {os.linesep}'''
+          
+        elif mensagem.lower() in ('210', '211', '212', '213', 'não estou com tosse', 'tosse produtiva', 'produtiva', 'tosse irritativa', 'irritativa', 'tosse seca', 'seca' ):
+          return f'''Anotado! Você está com mais algum desses problemas: {os.linesep}
+          230 - Cansaço sem esforço{os.linesep}
+          231 - Falta de ar{os.linesep}
+          232 - Tosse com sangue{os.linesep}
+          233 - Chiado ou dor no peito{os.linesep}
+          234 - Sim para mais de uma opção'''
+
+        elif mensagem.lower() in ('230', '231', '232', '233', '234', 'cansaço', 'falta de ar', 'tosse com sangue', 'chiado', 'dor no peito', 'sim para mais de uma opção'):
+          return f'''Ok! Peço que aguarde um pouco, que logo o(a) doutor(a) entrará para te atender virtualmente. Até um próximo atendimento." {os.linesep}'''
+
+        elif mensagem.lower() in ('sim', 'nao', 'não', 'estou com febre', 'mais que 37', 'esta alta', 'esta baixa', 'alta', 'baixa', 'normal', '36', '37', '37.5', '37.8', '38', '38.5', '39', '39.5', '40'):
+          return f'''Anotado! Você está com mais algum desses problemas: {os.linesep}
+          220 - Dores no corpo{os.linesep}
+          221 - Manchas vermelhas{os.linesep}
+          222 - Diarréia{os.linesep}
+          223 - Sim para várias opções{os.linesep}'''
+
+        elif mensagem.lower() in ('220', '221', '222', '223', 'dor no corpo', 'manchas vermelhas', 'diarreia','dor no peito', 'sim para várias' ):
+          return f'''Ok! Peço que aguarde um pouco, que logo o(a) doutor(a) entrará para te atender virtualmente. Até um próximo atendimento." {os.linesep}'''
+
+        elif mensagem.lower() in ('10', 'pneumologista', 'pneumo', 'pneumologia', 'preciso de um pneumologista'):
+          return f'''Ok! Estes são os Pneumologistas.{os.linesep}
+          Por favor, me diga com qual profissional você gostaria de ser atendido?{os.linesep}
+          101 - Dra. Sandra Peres (seg. e ter. às 09:00){os.linesep}
+          102 - Dra. Carla Rocha (qua. e qui. das 13:00 às 14:00){os.linesep}
+          103 - Dr. Sandoval Marins (sex. e sab. das 15:00 às 17:00){os.linesep}'''
+
+        elif mensagem.lower() in ('11', 'cardiologista', 'cardio', 'cardiologia', 'preciso de um cardiologista'):
+          return f'''Ok. As agendas dos Cardiologistas são estas:{os.linesep}
+          111 - Dr. Diego Santos (seg. e ter. às 09:00){os.linesep}
+          112 - Dr. Jorge Cardoso (qua. e qui. das 13:00 às 14:00){os.linesep}'''
+        
+        elif mensagem.lower() in ('12', 'hepatologista', 'hepato', 'hepatologia', 'preciso de um hepatologista'):
+          return f'''Ok. As agendas dos Hepatologistas são estas:{os.linesep}
+          121 - Dra. Michele Souza (sex. e sab. das 15:00 às 17:00){os.linesep}'''
+        
+        elif mensagem.lower() in ('101', 'Doutora Sandra Peres', 'Dra. Sandra Peres', 'Dra Sandra Peres', 'Doutora Sandra', 'Dra. Sandra', 'Dra Sandra', 'Doutora Peres', 'Dra. Peres', 'Dra Peres', 'Sandra Peres', 'Sandra', 'Peres', 'com a Doutora Sandra Peres', 'com a Dra. Sandra Peres', 'com a Dra Sandra Peres', 'com a Doutora Sandra', 'com a Dra. Sandra', 'com a Dra Sandra', 'com a Doutora Peres', 'com a Dra. Peres', 'com a Dra Peres', 'com a Sandra Peres', 'com a Peres'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pela Pneumologista Dra. Sandra Peres.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          110 - 21/06/2021 - segunda-feira{os.linesep}
+          120 - 22/06/2021 - terça-feira{os.linesep}'''
+        
+        elif mensagem.lower() in ('102', 'Doutora Carla Rocha', 'Dra. Carla Rocha', 'Dra Carla Rocha', 'Doutora Carla', 'Dra. Carla', 'Dra Carla', 'Doutora Rocha', 'Dra. Rocha', 'Dra Rocha', 'Carla Rocha', 'Carla', 'Rocha', 'com a Doutora Carla Rocha', 'com a Dra. Carla Rocha', 'com a Dra Carla Rocha', 'com a Doutora Carla', 'com a Dra. Carla', 'com a Dra Carla', 'com a Doutora Rocha', 'com a Dra. Rocha', 'com a Dra Rocha', 'com a Carla Rocha', 'com a Rocha'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pela Pneumologista Dra. Carla Rocha.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          130 - 23/06/2021 - quarta-feira{os.linesep}
+          140 - 24/06/2021 - quinta-feira{os.linesep}'''
+        
+        elif mensagem.lower() in ('103', 'Doutor Sandoval Marins', 'Dr. Sandoval Marins', 'Dr Sandoval Marins', 'Doutor Sandoval', 'Dr. Sandoval', 'Dr Sandoval', 'Doutor Marins', 'Dr. Marins', 'Dr Marins', 'Sandoval Marins', 'Sandoval', 'Marins', 'com o Doutor Sandoval Marins', 'com o Dr. Sandoval Marins', 'com o Dr Sandoval Marins', 'com o Doutor Sandoval', 'com o Dr. Sandoval', 'com o Dr Sandoval', 'com o Doutor Marins', 'com o Dr. Marins', 'com o Dr Marins', 'com o Sandoval Marins', 'com o Marins'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pelo Pneumologista Dr. Sandoval Marins.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          150 - 25/06/2021 - sexta-feira{os.linesep}
+          160 - 26/06/2021 - sábado{os.linesep}'''
+        
+        elif mensagem.lower() in ('111', 'Doutor Diego Santos', 'Dr. Diego Santos', 'Dr Diego Santos', 'Doutor Diego', 'Dr. Diego', 'Dr Diego', 'Doutor Santos', 'Dr. Santos', 'Dr Santos', 'Diego Santos', 'Diego', 'Santos', 'com o Doutor Diego Santos', 'com o Dr. Diego Santos', 'com o Dr Diego Santos', 'com o Doutor Diego', 'com o Dr. Diego', 'com o Dr Diego', 'com o Doutor Santos', 'com o Dr. Santos', 'com o Dr Santos', 'com o Diego Santos', 'com o Santos'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pelo Cardiologista Dr. Diego Santos.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          110 - 21/06/2021 - segunda-feira{os.linesep}
+          120 - 22/06/2021 - terça-feira{os.linesep}'''
+        
+        elif mensagem.lower() in ('112', 'Doutor Jorge Cardoso', 'Dr. Jorge Cardoso', 'Dr Jorge Cardoso', 'Jorge Cardoso', 'Dr. Jorge', 'Dr Jorge', 'Doutor Cardoso', 'Dr. Cardoso', 'Dr Cardoso', 'Jorge Cardoso', 'Jorge', 'Cardoso', 'com o Doutor Jorge Cardoso', 'com o Dr. Jorge Cardoso', 'com o Dr Jorge Cardoso', 'com o Jorge Cardoso', 'com o Dr. Jorge', 'com o Dr Jorge', 'com o Doutor Cardoso', 'com o Dr. Cardoso', 'com o Dr Cardoso', 'com o Jorge Cardoso', 'com o Cardoso'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pelo Cardiologista Dr. Jorge Cardoso.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          130 - 23/06/2021 - quarta-feira{os.linesep}
+          140 - 24/06/2021 - quinta-feira{os.linesep}'''
+        
+        elif mensagem.lower() in ('121', 'Doutora Michele Souza', 'Dra. Michele Souza', 'Dra Michele Souza', 'Doutora Michele', 'Dra. Michele', 'Dra Michele', 'Doutora Souza', 'Dra. Souza', 'Dra Souza', 'Michele Souza', 'Michele', 'Souza', 'com a Doutora Michele Souza', 'com a Dra. Michele Souza', 'com a Dra Michele Souza', 'com a Doutora Michele', 'com a Dra. Michele', 'com a Dra Michele', 'com a Doutora Souza', 'com a Dra. Souza', 'com a Dra Souza', 'com a Michele Souza', 'com a Souza'):
+          return f'''Tudo bem, você gostaria de ser atendido(a) pela Hepatologista Dra. Michele Souza.{os.linesep}
+          Esta é a agenda da Dra. Me fale qual é o melhor dia pra você ser atendido(a)?{os.linesep}
+          150 - 25/06/2021 - sexta-feira{os.linesep}
+          160 - 26/06/2021 - sábado{os.linesep}'''
+        
+        elif mensagem.lower() in ('110 - 21/06/2021 - segunda-feira', '110', '110 - 21/06/2021', '21/06/2021', '21/06', '21/06 - segunda-feira', 'segunda-feira', 'segunda', '120 - 22/06/2021 - terça-feira', '120', '120 - 22/06/2021', '22/06/2021', '22/06', '22/06 - terça-feira', 'terça-feira', 'terça'):
+          return f'''Entendi. E qual é o melhor horário pra você ser atendido(a)?{os.linesep}
+          115 - 09:00{os.linesep}'''
+
+        elif mensagem.lower() in ('130 - 23/06/2021 - quarta-feira', '130', '130 - 23/06/2021', '23/06/2021', '23/06', '23/06 - quarta-feira', 'quarta-feira', 'quarta', '140 - 24/06/2021 - quinta-feira', '140', '140 - 24/06/2021', '24/06/2021', '24/06', '24/06 - quinta-feira', 'quinta-feira', 'quinta'):
+          return f'''Entendi. E qual é o melhor horário pra você ser atendido(a)?{os.linesep}
+          125 - 13:00{os.linesep}
+          135 - 14:00{os.linesep}'''
+        
+        elif mensagem.lower() in ('150 - 25/06/2021 - sexta-feira', '150', '150 - 25/06/2021', '25/06/2021', '25/06', '25/06 - sexta-feira', 'sexta-feira', 'sexta', '160 - 26/06/2021 - sábado', '160 - 26/06/2021 - sabado', '160', '160 - 26/06/2021', '26/06/2021', '26/06', '26/06 - sábado', '26/06 - sabado', 'sábado', 'sabado'):
+          return f'''Entendi. E qual é o melhor horário pra você ser atendido(a)?{os.linesep}
+          145 - 15:00{os.linesep}
+          155 - 16:00{os.linesep}
+          165 - 17:00{os.linesep}'''
+        
+        elif mensagem.lower() in ('115 - 09:00', '115', '09:00', '9', '09', '125 - 13:00', '125', '13:00', '13', '135 - 14:00', '135', '14:00', '14', '145 - 15:00', '145', '15:00', '15', '155 - 16:00', '155', '16:00', '16', '165 - 17:00', '165', '17:00', '17'):
+          return f'''Ok. Consulta agendada.{os.linesep}
+          Pedimos, por gentileza, chegar 30 min. antes do horário da consulta.{os.linesep}
+          Agradecemos a preferência.{os.linesep}'''
+        
+        elif mensagem.lower() in ('obrigado', 'ok obrigado', 'tchau', 'muito obrigado', 'até mais', 'até logo'):
+          return f'''Até um próximo atendimento." {os.linesep}'''
+          
+        else:
+          return f'''Desculpa, mas não entendi. Por favor reformule...{os.linesep}'''
+
+  #enviar resposta
+  def responder(self,resposta,chat_id):
+    link_de_envio = f'{self.url_base}sendMessage?chat_id={chat_id}&text={resposta}'
+    requests.get(link_de_envio)
+
+bot = TelegramBot()
+bot.Iniciar()
